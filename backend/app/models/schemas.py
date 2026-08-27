@@ -46,10 +46,16 @@ class LabelExtraction(BaseModel):
     fssai_license: Optional[ExtractedField] = None
     ingredients: Optional[ExtractedField] = None
     nutritional_info: Optional[ExtractedField] = None
-    allergen_info: Optional[ExtractedField] = None       # "Contains:" statement
-    veg_nonveg_symbol: Optional[ExtractedField] = None   # Green/brown symbol declaration
-    language_declaration: Optional[ExtractedField] = None # English/Hindi text presence
+    allergen_info: Optional[ExtractedField] = None
+    veg_nonveg_symbol: Optional[ExtractedField] = None
+    language_declaration: Optional[ExtractedField] = None
     all_fields: List[ExtractedField] = []
+
+    # Image quality diagnostics — populated by OCR service
+    image_clarity_score: float = Field(default=1.0, ge=0.0, le=1.0,
+        description="Laplacian variance normalised to [0,1]. < 0.3 = blurry.")
+    image_is_blurry: bool = False
+    image_quality_warning: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------

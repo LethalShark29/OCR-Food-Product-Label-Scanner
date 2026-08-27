@@ -38,6 +38,10 @@ export interface LabelExtraction {
   veg_nonveg_symbol: ExtractedField | null;
   language_declaration: ExtractedField | null;
   all_fields: ExtractedField[];
+  // Image quality
+  image_clarity_score: number;
+  image_is_blurry: boolean;
+  image_quality_warning: string | null;
 }
 
 export interface Violation {

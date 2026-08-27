@@ -1,6 +1,14 @@
+const path = require("path");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+
+  allowedDevOrigins: [
+    "192.168.1.12",
+    "https://192.168.1.12:3000",
+  ],
+
   async rewrites() {
     return [
       {

@@ -3,15 +3,19 @@
 import React, { useState } from "react";
 import {
   CheckCircle2, AlertTriangle, XCircle,
-  FileText, Clock, Download, Shield,
+  FileText, Clock, Download, Shield, Loader2,
 } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
 import ViolationCard from "./ViolationCard";
 import ExtractionTable from "./ExtractionTable";
-import { cn, formatTimestamp, statusColor, statusLabel, scoreRingColor } from "@/lib/utils";
+import { cn, formatTimestamp, statusLabel, scoreRingColor } from "@/lib/utils";
+import { exportPdf } from "@/lib/pdfExport";
 import type { ComplianceReport as ReportType, ComplianceStatus, Severity } from "@/types";
 
-interface Props { report: ReportType; }
+interface Props {
+  report: ReportType;
+  labelImageSrc?: string | null;
+}
 type Tab = "violations" | "passed" | "extraction";
 
 // status → neon border class
@@ -21,15 +25,25 @@ const STATUS_GLOW: Record<ComplianceStatus, string> = {
   needs_review:  "neon-border-amber border",
 };
 
-export default function ComplianceReport({ report }: Props) {
+export default function ComplianceReport({ report, labelImageSrc }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("violations");
   const [filterSeverity, setFilterSeverity] = useState<Severity | "all">("all");
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const filteredViolations = filterSeverity === "all"
     ? report.violations
     : report.violations.filter(v => v.severity === filterSeverity);
 
-  function downloadReport() {
+  async function handleExportPdf() {
+    setExportingPdf(true);
+    try {
+      await exportPdf(report, labelImageSrc ?? null);
+    } finally {
+      setExportingPdf(false);
+    }
+  }
+
+  function downloadJson() {
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -103,15 +117,28 @@ export default function ComplianceReport({ report }: Props) {
             </div>
           </div>
 
-          {/* Export */}
-          <button
-            onClick={downloadReport}
-            className="btn-secondary flex-shrink-0 self-start text-xs px-3 py-2"
-            aria-label="Export compliance report as JSON"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Export JSON
-          </button>
+          {/* Export buttons */}
+          <div className="flex flex-col gap-2 flex-shrink-0 self-start">
+            <button
+              onClick={handleExportPdf}
+              disabled={exportingPdf}
+              className="btn-primary text-xs px-4 py-2 gap-2 disabled:opacity-60"
+              aria-label="Export compliance report as PDF"
+            >
+              {exportingPdf
+                ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</>
+                : <><Download className="w-3.5 h-3.5" /> Export PDF</>
+              }
+            </button>
+            <button
+              onClick={downloadJson}
+              className="btn-secondary text-xs px-4 py-2"
+              aria-label="Export compliance report as JSON"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Export JSON
+            </button>
+          </div>
         </div>
       </div>
 

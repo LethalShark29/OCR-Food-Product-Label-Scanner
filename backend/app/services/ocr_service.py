@@ -222,6 +222,50 @@ def _extract_product_name(raw_text: str) -> Optional[str]:
     return lines[0]
 
 
+# ── Image clarity assessment ──────────────────────────────────────────────────
+
+def _assess_clarity(img: np.ndarray) -> tuple[float, bool, Optional[str]]:
+    """
+    Measure image sharpness using the Laplacian variance method.
+
+    A sharp image has high variance (lots of edges).
+    A blurry image has low variance (smooth, few edges).
+
+    Returns:
+        clarity_score : float in [0, 1]  (higher = sharper)
+        is_blurry     : bool
+        warning_msg   : str | None
+    """
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+
+    # Normalise — empirically, values below ~100 are blurry for label photos.
+    # Cap at 2000 so scores don't explode on very sharp images.
+    MAX_VAR = 2000.0
+    score = min(laplacian_var / MAX_VAR, 1.0)
+
+    # Thresholds
+    if laplacian_var < 50:
+        return round(score, 3), True, (
+            "Image is very blurry (sharpness score: {:.0f}). "
+            "OCR accuracy may be significantly reduced. "
+            "Try retaking the photo with better lighting and hold the camera steady."
+        ).format(laplacian_var)
+    elif laplacian_var < 100:
+        return round(score, 3), True, (
+            "Image appears slightly blurry (sharpness score: {:.0f}). "
+            "Some fields may not be detected accurately. "
+            "Consider retaking with the camera closer to the label."
+        ).format(laplacian_var)
+    elif laplacian_var < 200:
+        return round(score, 3), False, (
+            "Image quality is acceptable but not ideal (sharpness score: {:.0f}). "
+            "If fields are missing, use the Manual Correction panel below."
+        ).format(laplacian_var)
+
+    return round(score, 3), False, None
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def extract_label(image_bytes: bytes) -> LabelExtraction:
@@ -232,6 +276,13 @@ def extract_label(image_bytes: bytes) -> LabelExtraction:
     reader = _get_reader()
 
     img = _preprocess(image_bytes)
+
+    # Assess image clarity BEFORE OCR (on the pre-processed image)
+    clarity_score, is_blurry, quality_warning = _assess_clarity(img)
+    if is_blurry:
+        logger.warning("Image clarity check: blurry (score=%.3f). %s", clarity_score, quality_warning)
+    else:
+        logger.info("Image clarity check: score=%.3f", clarity_score)
 
     # EasyOCR returns: list of ([tl,tr,br,bl], text, confidence)
     results: EasyResult = reader.readtext(img, detail=1, paragraph=False)
@@ -269,4 +320,7 @@ def extract_label(image_bytes: bytes) -> LabelExtraction:
         veg_nonveg_symbol=extracted_fields["veg_nonveg_symbol"],
         language_declaration=extracted_fields["language_declaration"],
         all_fields=list(extracted_fields.values()),
+        image_clarity_score=clarity_score,
+        image_is_blurry=is_blurry,
+        image_quality_warning=quality_warning,
     )

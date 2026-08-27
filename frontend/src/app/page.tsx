@@ -215,6 +215,62 @@ export default function HomePage() {
                     naturalHeight={imgDimensions.h}
                   />
                 )}
+
+                {/* Image quality warning banner */}
+                {state === "done" && report?.extraction.image_quality_warning && (
+                  <div className={cn(
+                    "rounded-xl border px-4 py-3 flex items-start gap-3 animate-fade-in",
+                    report.extraction.image_is_blurry
+                      ? "bg-amber-900/20 border-amber-500/40"
+                      : "bg-blue-900/10 border-blue-500/30"
+                  )}>
+                    {/* Sharpness bar */}
+                    <div className="flex-shrink-0 mt-0.5">
+                      {report.extraction.image_is_blurry ? (
+                        <span className="text-lg">📷</span>
+                      ) : (
+                        <span className="text-lg">ℹ️</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className={cn(
+                          "text-xs font-bold",
+                          report.extraction.image_is_blurry ? "text-amber-300" : "text-blue-300"
+                        )}>
+                          {report.extraction.image_is_blurry ? "Image Quality Warning" : "Image Quality Notice"}
+                        </p>
+                        {/* Clarity score bar */}
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <span className="text-xs text-slate-500">Sharpness</span>
+                          <div className="w-16 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{
+                                width: `${Math.round(report.extraction.image_clarity_score * 100)}%`,
+                                background: report.extraction.image_is_blurry
+                                  ? "linear-gradient(90deg, #f87171, #fbbf24)"
+                                  : "linear-gradient(90deg, #fbbf24, #4ade80)",
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-mono text-slate-400 w-8">
+                            {Math.round(report.extraction.image_clarity_score * 100)}%
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        {report.extraction.image_quality_warning}
+                      </p>
+                      {report.extraction.image_is_blurry && (
+                        <p className="text-xs text-amber-400/70 mt-1">
+                          Analysis completed — use <span className="font-semibold">Manual Field Correction</span> below to fill in any missed fields.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {file && state !== "loading" && (
                   <p className="text-xs text-slate-600 text-center truncate px-2">{file.name}</p>
                 )}
@@ -248,7 +304,7 @@ export default function HomePage() {
           {/* Right column — report */}
           {state === "done" && report && (
             <div className="lg:col-span-3 animate-slide-in-right space-y-5">
-              <ComplianceReportPanel report={report} />
+              <ComplianceReportPanel report={report} labelImageSrc={previewUrl} />
 
               {/* Manual override panel */}
               <ManualOverridePanel
