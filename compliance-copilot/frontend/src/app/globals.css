@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+
+  body {
+    @apply bg-surface-900 text-white antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    background-image:
+      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  * { @apply box-border; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-surface-800; }
+  ::-webkit-scrollbar-thumb { @apply bg-surface-500 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-brand-600; }
+}
+
+@layer components {
+  /* Glass card */
+  .glass {
+    background: rgba(15, 22, 41, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(56, 189, 248, 0.12);
+    @apply shadow-glass;
+  }
+
+  .glass-light {
+    background: rgba(21, 30, 53, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* Neon border glow */
+  .neon-border-blue  { border-color: rgba(56,189,248,0.4); box-shadow: 0 0 12px rgba(56,189,248,0.2), inset 0 0 12px rgba(56,189,248,0.05); }
+  .neon-border-green { border-color: rgba(74,222,128,0.4); box-shadow: 0 0 12px rgba(74,222,128,0.2), inset 0 0 12px rgba(74,222,128,0.05); }
+  .neon-border-red   { border-color: rgba(248,113,113,0.4); box-shadow: 0 0 12px rgba(248,113,113,0.2), inset 0 0 12px rgba(248,113,113,0.05); }
+  .neon-border-amber { border-color: rgba(251,191,36,0.4); box-shadow: 0 0 12px rgba(251,191,36,0.2), inset 0 0 12px rgba(251,191,36,0.05); }
+
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #a78bfa 100%);
+  }
+  .text-gradient-green {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #4ade80, #22d3ee);
+  }
+  .text-gradient-red {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #f87171, #fb923c);
+  }
+  .text-gradient-amber {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #fbbf24, #fb923c);
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5
+           text-sm font-semibold text-white
+           disabled:opacity-40 disabled:cursor-not-allowed
+           transition-all duration-200 relative overflow-hidden;
+    background: linear-gradient(135deg, #2563eb, #38bdf8);
+    box-shadow: 0 0 20px rgba(56,189,248,0.3);
+  }
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: 0 0 30px rgba(56,189,248,0.5);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5
+           text-sm font-semibold text-slate-300 glass
+           hover:border-brand-500/40 hover:text-white
+           disabled:opacity-40 disabled:cursor-not-allowed
+           transition-all duration-200;
+  }
+
+  /* Scanner line animation */
+  .scanner-line {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #38bdf8, #818cf8, #38bdf8, transparent);
+    box-shadow: 0 0 8px #38bdf8, 0 0 24px rgba(56,189,248,0.5);
+    @apply animate-scanner;
+  }
+
+  /* Corner brackets for scanner frame */
+  .scan-corner { @apply absolute w-5 h-5 border-neon-cyan; }
+  .scan-corner-tl { @apply top-0 left-0 border-t-2 border-l-2; }
+  .scan-corner-tr { @apply top-0 right-0 border-t-2 border-r-2; }
+  .scan-corner-bl { @apply bottom-0 left-0 border-b-2 border-l-2; }
+  .scan-corner-br { @apply bottom-0 right-0 border-b-2 border-r-2; }
+}
+
+/* Spinning conic gradient border trick */
+.spinning-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, transparent 0%, #38bdf8 25%, transparent 50%);
+  animation: borderSpin 3s linear infinite;
+  z-index: -1;
+}
