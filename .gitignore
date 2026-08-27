@@ -34,3 +34,6 @@ __pycache__/
 .coverage
 htmlcov/
 .mypy_cache/
+
+# mkcert local certificates
+frontend/*.pem
